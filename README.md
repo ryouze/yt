@@ -37,7 +37,9 @@ Since I already run a Docker-based home server, I built this simple self-hosted 
        #
        # And then in Caddyfile:
        # redir /yt /yt/
-       # reverse_proxy /yt/* localhost:8501
+       # handle /yt/* {
+       #     reverse_proxy yt:8501
+       # }
        ports:
          - "8501:8501"
        volumes:
