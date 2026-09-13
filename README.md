@@ -4,6 +4,8 @@ A self-hosted YouTube subscription manager built with Streamlit, SQLite, and Doc
 
 This is part of my [home server stack](https://github.com/ryouze/home-server).
 
+![Homepage](screenshots/homepage.jpeg)
+
 ## Motivation
 
 I try to avoid Google services, but I still watch YouTube occasionally.
