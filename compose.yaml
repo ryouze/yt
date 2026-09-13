@@ -16,6 +16,7 @@ services:
     container_name: "yt"
     user: "1000:1000"
     environment:
+      # This is optional and defaults to 900
       REFRESH_INTERVAL_SECONDS: "900"
     ports:
       - "8501:8501"
