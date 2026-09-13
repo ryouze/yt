@@ -50,3 +50,7 @@ reportUnusedCallResult = false
 # Search in `tests/` first and enable strict mode, opting into any strict flags added in the future
 testpaths = ["tests"]
 strict = true
+addopts = [
+  # Display all test names (verbose)
+  "-v",
+]
