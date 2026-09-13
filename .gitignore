@@ -1,3 +1,10 @@
+# IDEs & configs
+.zed/
+codebook.toml
+
+# yt SQLite database
+data/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

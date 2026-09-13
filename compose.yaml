@@ -1,0 +1,24 @@
+# Developer-only compose file; refer to `README.md` for end-user instructions
+#
+# Start the stack:
+#   docker compose up --build
+#
+# Watch logs:
+#   docker compose logs -f --tail=200
+#
+# Stop the stack:
+#   docker compose down
+
+services:
+  yt:
+    build:
+      context: "."
+    container_name: "yt"
+    user: "1000:1000"
+    environment:
+      REFRESH_INTERVAL_SECONDS: "900"
+    ports:
+      - "8501:8501"
+    volumes:
+      - "./data:/app/data"
+    restart: "unless-stopped"

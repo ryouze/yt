@@ -1,0 +1,52 @@
+[project]
+name = "yt"
+version = "0.1.0"
+description = "A self-hosted YouTube subscription manager."
+readme = "README.md"
+authors = [
+    { name = "ryouze", email = "mirai@ryouze.net" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    # To see available updates:
+    #   uv lock --upgrade --dry-run
+    #   uv tree --outdated --depth 1
+    "loguru>=0.7.3",              # For zero-configuration logging
+    "pandas>=3.0.5",              # For tables
+    "pydantic>=2.13.5",           # For data validation
+    "streamlit>=1.63.0",          # For the entire web framework
+    "yt-dlp>=2026.8.19",          # For fetching data from YouTube
+    "pydantic-settings>=2.15.0",  # For global settings
+]
+
+[build-system]
+requires = ["uv_build>=0.12.3,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+test = [
+    "pytest>=9.1.1",  # For automatic testing
+]
+dev = [
+    "ruff",                        # For linting
+    "watchdog",                    # For Streamlit hot reloads
+    "basedpyright",                # For static type checking
+    "pandas-stubs>=3.0.5.260730",  # For pandas type hints
+]
+
+[tool.uv]
+# Require all packages to be at least 3 days old to avoid supply chain attacks (see: https://cooldowns.dev/#uv)
+exclude-newer = "3 days"
+# uv only installs `dev` by default; we want to install `test` too (production only installs the base dependencies)
+default-groups = ["test", "dev"]
+
+[tool.basedpyright]
+# We often redeclare `msg: str` for exception messages
+reportRedeclaration = false
+# Most Streamlit functions return something, even if it's not meant to be used
+reportUnusedCallResult = false
+
+[tool.pytest]
+# Search in `tests/` first and enable strict mode, opting into any strict flags added in the future
+testpaths = ["tests"]
+strict = true

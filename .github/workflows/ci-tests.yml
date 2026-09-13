@@ -1,0 +1,44 @@
+name: "CI: Run automated tests"
+
+on:
+  # Run on push to `main` and allow manual runs from the `Actions` tab
+  push:
+  workflow_dispatch:
+
+# Ensure GITHUB_TOKEN is read-only; any unlisted permissions here are also disabled
+permissions:
+  contents: read
+
+env:
+  # Compile `*.pyc` files lazily on import instead of during installation
+  PIP_NO_COMPILE: "1"
+  # Require all packages to be at least 3 days old to avoid supply chain attacks (see: https://cooldowns.dev/#uv)
+  PIP_UPLOADED_PRIOR_TO: "P3D"
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    # GitHub Actions can sometimes freeze, so stop if this job takes more than 5 minutes
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          # Do not store GITHUB_TOKEN in `$RUNNER_TEMP`
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          # Avoid downloading the same packages again (see: https://github.com/actions/setup-python)
+          cache: "pip"
+          python-version: "3.14"
+
+      - name: Install Python dependencies
+        # Pip, unlike uv, does not install the `dev` group by default
+        run: pip3 install --group test .
+
+      - name: Run pytest
+        # `-v` displays all test names
+        run: pytest -v
