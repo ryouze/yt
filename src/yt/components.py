@@ -1,4 +1,4 @@
-from concurrent.futures import Future, ThreadPoolExecutor
+from concurrent.futures import Future, ThreadPoolExecutor, as_completed
 from typing import TYPE_CHECKING
 
 import pandas as pd
@@ -22,31 +22,51 @@ def _get_database() -> Database:
 @st.cache_data(
     # Evict stale cache immediately
     max_entries=1,
-    show_time=True,
+    # Do not display a spinner; we will rely on the progress bar instead
+    show_spinner=False,
     # Auto-refresh every N seconds
     ttl=settings.refresh_interval_seconds,
-    show_spinner="Fetching the latest available videos...",
 )
 def _fetch_subscription_statuses(subscriptions: list[Subscription]) -> list[SubscriptionStatus]:
     """Fetch the YouTube subscription statuses from the internet: current channel names and the latest N videos."""
+    subscription_statuses: list[SubscriptionStatus] = []
+
+    # Counters
+    processed_count: int = 0
+    subscription_count: int = len(subscriptions)
+
+    # Progress bar
+    progress_text_template: str = "Fetching subscriptions: {processed}/{total}"
+    progress_text: str = progress_text_template.format(processed=processed_count, total=subscription_count)
+    progress_bar = st.progress(0, text=progress_text)
+
     # Fetch at most 4 channels to avoid making too many requests to YouTube
-    max_workers: int = min(4, len(subscriptions))
+    max_workers: int = min(4, subscription_count)
 
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         subscription_to_futures: list[tuple[Subscription, Future[SubscriptionStatus]]] = [
             (subscription, executor.submit(fetch_subscription_status, subscription)) for subscription in subscriptions
         ]
 
-        subscription_statuses: list[SubscriptionStatus] = []
+        # TODO(ryouze): Use `as_completed()` so progress updates as each subscription fetch finishes while preserving
+        # subscription order (or sort later?)
 
         for subscription, future in subscription_to_futures:
             try:
                 subscription_status = future.result()
             except Exception as error:
                 st.warning(f"Could not fetch {subscription.channel_url}: {error}", icon=":material/warning:")
-                continue
+            else:
+                # Append successes, do not append failures
+                subscription_statuses.append(subscription_status)
+            finally:
+                # Whether success or failure, always advance the progress bar
+                processed_count += 1
 
-            subscription_statuses.append(subscription_status)
+                progress_text = progress_text_template.format(processed=processed_count, total=subscription_count)
+                progress_bar.progress(processed_count / subscription_count, text=progress_text)
+
+    progress_bar.empty()
 
     return subscription_statuses
 
