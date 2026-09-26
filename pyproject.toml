@@ -1,7 +1,7 @@
 [project]
 name = "yt"
 version = "0.1.0"
-description = "A self-hosted YouTube subscription manager."
+description = "YouTube subscription manager built with Streamlit, SQLite, and Docker."
 readme = "README.md"
 authors = [
     { name = "ryouze", email = "mirai@ryouze.net" }
@@ -50,3 +50,7 @@ reportUnusedCallResult = false
 # Search in `tests/` first and enable strict mode, opting into any strict flags added in the future
 testpaths = ["tests"]
 strict = true
+addopts = [
+  # Display all test names (verbose)
+  "-v",
+]

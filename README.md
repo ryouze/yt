@@ -1,6 +1,6 @@
 # yt
 
-A self-hosted YouTube subscription manager built with Streamlit, SQLite, and Docker.
+YouTube subscription manager built with Streamlit, SQLite, and Docker.
 
 This is part of my [home server stack](https://github.com/ryouze/home-server).
 

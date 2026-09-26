@@ -40,5 +40,5 @@ jobs:
         run: pip3 install --group test .
 
       - name: Run pytest
-        # `-v` displays all test names
-        run: pytest -v
+        # The actual configuration is done in `pyproject.toml`
+        run: pytest
