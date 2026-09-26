@@ -1,15 +1,12 @@
 import sqlite3
 from datetime import datetime
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 import pytest
 from pydantic import HttpUrl
 
 from yt.database import Database
 from yt.structures import Subscription, SubscriptionInput
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 
 @pytest.fixture

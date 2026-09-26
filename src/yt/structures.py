@@ -1,4 +1,5 @@
-from typing import TYPE_CHECKING, ClassVar
+from collections.abc import Mapping
+from typing import ClassVar
 
 from pydantic import (
     BaseModel,
@@ -9,9 +10,6 @@ from pydantic import (
     PositiveInt,
     field_validator,
 )
-
-if TYPE_CHECKING:
-    from collections.abc import Mapping
 
 
 class _AppBaseModel(BaseModel):

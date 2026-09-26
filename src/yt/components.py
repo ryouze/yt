@@ -1,16 +1,13 @@
-from concurrent.futures import Future, ThreadPoolExecutor, as_completed
-from typing import TYPE_CHECKING
+from concurrent.futures import Future, ThreadPoolExecutor
 
 import pandas as pd
 import streamlit as st
+from streamlit.typing import DataEditorState
 
 from yt.config import settings
 from yt.database import Database
 from yt.structures import Subscription, SubscriptionInput, SubscriptionStatus
 from yt.youtube import fetch_subscription_status
-
-if TYPE_CHECKING:
-    from streamlit.typing import DataEditorState
 
 
 @st.cache_resource(show_spinner="Creating SQLite database...")

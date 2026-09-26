@@ -1,16 +1,13 @@
 import sqlite3
+from collections.abc import Generator
 from contextlib import closing, contextmanager
 from datetime import datetime
 from enum import StrEnum, auto
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from loguru import logger
 
 from yt.structures import Subscription, SubscriptionInput
-
-if TYPE_CHECKING:
-    from collections.abc import Generator
 
 # Convert all SQLite `CURRENT_TIMESTAMP` text values to `datetime` for strict Pydantic validation
 # Register globally because SQLite's converter registry is process-wide, so putting it within the class would make
