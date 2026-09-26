@@ -58,7 +58,7 @@ class Database:
                 f"""
                 CREATE TABLE IF NOT EXISTS subscriptions (
                     {self.Field.ID} INTEGER PRIMARY KEY,
-                    {self.Field.CHANNEL_URL} TEXT NOT NULL,
+                    {self.Field.CHANNEL_URL} TEXT NOT NULL UNIQUE,
                     {self.Field.CREATED_AT} TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     {self.Field.UPDATED_AT} TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
                 );
