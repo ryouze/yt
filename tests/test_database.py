@@ -94,7 +94,8 @@ def test_update_duplicate_subscription(database: Database) -> None:
 
     subscriptions: list[Subscription] = database.read_all()
 
-    second_subscription = next(s for s in subscriptions if s.id == 2)
+    second_subscription_id: int = 2
+    second_subscription = next(s for s in subscriptions if s.id == second_subscription_id)
     duplicate_subscription = second_subscription.with_changes(
         changes={Database.Field.CHANNEL_URL: first_subscription_input.channel_url},
     )
@@ -105,7 +106,8 @@ def test_update_duplicate_subscription(database: Database) -> None:
     # Check if after the failed duplicate update, the database still contains exactly the two original channel URLs
     subscriptions = database.read_all()
 
-    assert len(subscriptions) == 2
+    expected_subscription_count: int = 2
+    assert len(subscriptions) == expected_subscription_count
     assert {s.channel_url for s in subscriptions} == {
         first_subscription_input.channel_url,
         second_subscription_input.channel_url,
