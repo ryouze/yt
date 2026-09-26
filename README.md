@@ -62,5 +62,5 @@ Since I already run a Docker-based home server, I built this simple self-hosted 
    ```
 2. Start the application:
    ```sh
-   streamlit run app.py
+   streamlit run src/yt/streamlit_app.py
    ```
