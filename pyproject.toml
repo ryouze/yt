@@ -11,27 +11,29 @@ dependencies = [
     # To see available updates:
     #   uv lock --upgrade --dry-run
     #   uv tree --outdated --depth 1
-    "loguru>=0.7.3",              # For zero-configuration logging
-    "pandas>=3.0.5",              # For tables
-    "pydantic>=2.13.5",           # For data validation
-    "streamlit>=1.63.0",          # For the entire web framework
-    "yt-dlp>=2026.8.19",          # For fetching data from YouTube
-    "pydantic-settings>=2.15.0",  # For global settings
+    # To update everything:
+    #   uv sync --upgrade
+    "pandas>=3.0.5,<4",              # For tables
+    "yt-dlp>=2026.8.19",             # For fetching data from YouTube
+    "loguru>=0.7.3,<0.8",            # For zero-configuration logging
+    "pydantic>=2.14.1,<3",           # For data validation
+    "streamlit>=1.66.0,<2",          # For the entire web framework
+    "pydantic-settings>=2.16.0,<3",  # For global settings
 ]
 
 [build-system]
-requires = ["uv_build>=0.12.3,<0.13.0"]
+requires = ["uv_build>=0.13.1,<0.14.0"]
 build-backend = "uv_build"
 
 [dependency-groups]
 test = [
-    "pytest>=9.1.1",  # For automatic testing
+    "pytest>=9.1.1,<10",  # For automatic testing
 ]
 dev = [
-    "ruff",                        # For linting
-    "watchdog",                    # For Streamlit hot reloads
-    "basedpyright",                # For static type checking
-    "pandas-stubs>=3.0.5.260730",  # For pandas type hints
+    "ruff",                    # For linting
+    "watchdog",                # For Streamlit hot reloads
+    "basedpyright",            # For static type checking
+    "pandas-stubs>=3.0.5,<4",  # For pandas type hints
 ]
 
 [tool.uv]
