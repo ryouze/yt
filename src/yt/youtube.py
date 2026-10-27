@@ -69,6 +69,13 @@ def fetch_subscription_status(subscription: Subscription) -> SubscriptionStatus:
             logger.debug("Skipping {} video {} for {}", live_status, video_url, subscription.channel_url)
             continue
 
+        # Reject members-only videos
+        availability: str | None = entry.get("availability")
+
+        if availability == "subscriber_only":
+            logger.debug("Skipping members-only video {} for {}", video_url, subscription.channel_url)
+            continue
+
         videos.append(
             Video(
                 video_title=title,
