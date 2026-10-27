@@ -1,7 +1,7 @@
 name: "CI: Run automated tests"
 
 on:
-  # Run on push to `main` and allow manual runs from the `Actions` tab
+  # Run on push to any branch and allow manual runs from the `Actions` tab
   push:
   workflow_dispatch:
 
