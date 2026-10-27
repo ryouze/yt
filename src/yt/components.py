@@ -1,8 +1,6 @@
 from concurrent.futures import Future, ThreadPoolExecutor
 
-import pandas as pd
 import streamlit as st
-from streamlit.typing import DataEditorState
 
 from yt.config import settings
 from yt.database import Database
@@ -16,6 +14,7 @@ def _get_database() -> Database:
     return Database()
 
 
+# TODO(ryouze): We should draw the fetched channel immediately instead of waiting until everything is fetched
 @st.cache_data(
     # Evict stale cache immediately
     max_entries=1,
@@ -87,6 +86,7 @@ def draw_browse_page() -> None:
 
         # Keep every video in a single horizontally scrollable row
         # This is better than `st.container` because each video gets an equal-width column
+        # TODO(ryouze): Use a `st.container(horizontal=True)` here if possible
         cols = st.columns(
             wrap=False,
             gap="xsmall",
@@ -110,53 +110,114 @@ def draw_modify_page() -> None:
     database = _get_database()
     subscriptions: list[Subscription] = database.read_all()
 
-    # Pandas is the easiest way to pass data to `st.data_editor` (Streamlit requires pandas anyway)
-    # Using dicts will work if there is more than one entry; otherwise, `st.data_editor` defaults to floats
-    subscriptions_df = pd.DataFrame(
-        # Define columns so that if there are no subscriptions yet, it uses `object`
-        columns=[Database.Field.CHANNEL_URL],
-        data=[{Database.Field.CHANNEL_URL: str(s.channel_url)} for s in subscriptions],
-    )
-
-    data_editor_key: str = "app.editor.data_editor"
-
-    st.data_editor(
-        data=subscriptions_df,
-        # Expand to fit the content, since there is nothing on the page besides this table anyway
-        height="content",
-        hide_index=True,
-        column_config={
-            Database.Field.CHANNEL_URL: st.column_config.LinkColumn(
-                label="Channel URL",
-                help="Link to the YouTube channel (e.g., `https://www.youtube.com/@noriyaro`)",
+    with st.form("components.draw_modify_page.form.add_subscription", clear_on_submit=True):  # noqa: SIM117
+        # Arrange horizontally, hooked to the bottom so the submit button is is aligned with the text field
+        with st.container(horizontal=True, vertical_alignment="bottom"):
+            new_channel_url: str = st.text_input(
+                label="New channel URL",
+                type="url",
+                placeholder="https://www.youtube.com/@noriyaro",
                 required=True,
+                label_visibility="collapsed",
                 # Perform basic regex validation to ensure it's at least a YouTube link
                 # That way, broadly incorrect links are immediately rejected inside the Streamlit UI
                 # We will perform thorough extraction within the Pydantic structures afterward
                 validate=r"^https://.*youtube\.com.*$",
-            ),
-        },
-        key=data_editor_key,
-        # Enable add/edit/delete mode
-        num_rows="dynamic",
-        placeholder="...",
-    )
+            )
 
-    editor_state: DataEditorState = st.session_state[data_editor_key]  # pyright: ignore[reportAny]
+            is_add_pressed: bool = st.form_submit_button(
+                # TODO(ryouze): Make this consistent through the app: do we call them "channels" or "subscriptions"?
+                label="Add new channel",
+                help="Add the entered YouTube channel URL to the list of subscribed channels",
+                type="primary",
+                icon=":material/add:",
+            )
 
-    for row_position, edited_values in editor_state.edited_rows.items():
-        # A row deleted without prior edits may be absent from `edited_rows`
-        # An edited-then-deleted row can appear in both
-        if row_position in editor_state.deleted_rows:
-            continue
-
-        subscription: Subscription = subscriptions[row_position].with_changes(edited_values)
-        database.update(subscription)
-
-    for row_position in editor_state.deleted_rows:
-        subscription: Subscription = subscriptions[row_position]
-        database.delete(subscription)
-
-    for added_row in editor_state.added_rows:
-        subscription_input = SubscriptionInput.model_validate(added_row)
+    if is_add_pressed:
+        # TODO(ryouze): Check if this is the best way to create a validated Pydantic model
+        subscription_input = SubscriptionInput.model_validate({Database.Field.CHANNEL_URL: new_channel_url})
         database.insert_new(subscription_input)
+        st.rerun()
+
+    with st.container(border=True):
+        if not subscriptions:
+            st.info("No subscriptions added yet. Please add one in the form above.", icon=":material/lightbulb:")
+            return
+
+        for subscription in subscriptions:
+            # This will be re-used often within the loop
+            channel_url_str = str(subscription.channel_url)
+
+            with st.container(horizontal=True):
+                st.link_button(
+                    label=channel_url_str,
+                    url=channel_url_str,
+                    help="Open this channel in a new tab",
+                    type="tertiary",
+                    icon=":material/person:",
+                )
+
+                # Greedily fill remaining space between content-sized widgets
+                st.space("stretch")
+
+                with st.popover(
+                    label="Edit",
+                    help="Open a menu where the channel URL can be edited",
+                    icon=":material/edit:",
+                ):
+                    with st.form(
+                        key=f"components.draw_modify_page.form.edit_subscription.{subscription.id}",
+                        clear_on_submit=True,
+                        border=False,
+                    ):
+                        edited_channel_url: str = st.text_input(
+                            label="Edited channel URL",
+                            value=channel_url_str,
+                            type="url",
+                            placeholder="https://www.youtube.com/@noriyaro",
+                            required=True,
+                            label_visibility="collapsed",
+                            # Perform basic regex validation to ensure it's at least a YouTube link
+                            # That way, broadly incorrect links are immediately rejected inside the Streamlit UI
+                            # We will perform thorough extraction within the Pydantic structures afterward
+                            validate=r"^https://.*youtube\.com.*$",
+                        )
+                        is_save_pressed: bool = st.form_submit_button(
+                            label="Save channel URL",
+                            help="Set the YouTube channel URL to the entered URL",
+                            type="primary",
+                            icon=":material/save_as:",
+                            width="stretch",
+                        )
+
+                    if is_save_pressed:
+                        updated_subscription = subscription.with_changes(
+                            {Database.Field.CHANNEL_URL: edited_channel_url},
+                        )
+                        database.update(updated_subscription)
+                        st.rerun()
+
+                with st.popover(
+                    label="Delete",
+                    help="Open a menu where the channel can be deleted",
+                    icon=":material/delete:",
+                ):
+                    st.text_input(
+                        label="Delete channel URL",
+                        value=channel_url_str,
+                        disabled=True,
+                        label_visibility="collapsed",
+                    )
+                    is_delete_pressed: bool = st.button(
+                        label="Delete channel",
+                        # This isn't a `st.form_submit_button` so we need unique keys to avoid
+                        # `StreamlitDuplicateElementId`
+                        key=f"components.draw_modify_page.button.delete_subscription.{subscription.id}",
+                        help="Delete the YouTube channel permanently",
+                        type="primary",
+                        icon=":material/delete_forever:",
+                        width="stretch",
+                    )
+                    if is_delete_pressed:
+                        database.delete(subscription)
+                        st.rerun()
