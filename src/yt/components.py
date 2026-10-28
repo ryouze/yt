@@ -111,7 +111,7 @@ def draw_modify_page() -> None:
     subscriptions: list[Subscription] = database.read_all()
 
     with st.form("components.draw_modify_page.form.add_subscription", clear_on_submit=True):  # noqa: SIM117
-        # Arrange horizontally, hooked to the bottom so the submit button is is aligned with the text field
+        # Arrange horizontally, hooked to the bottom so the submit button is aligned with the text field
         with st.container(horizontal=True, wrap=False, vertical_alignment="bottom"):
             new_channel_url: str = st.text_input(
                 label="New channel URL",
@@ -125,9 +125,8 @@ def draw_modify_page() -> None:
                 validate=r"^https://.*youtube\.com.*$",
             )
             is_add_new_channel_url_pressed: bool = st.form_submit_button(
-                # TODO(ryouze): Make this consistent through the app: do we call them "channels" or "subscriptions"?
                 label="Add",
-                help="Add the entered YouTube channel URL to the list of subscribed channels",
+                help="Add the channel at the entered URL",
                 type="primary",
                 icon=":material/add:",
             )
@@ -140,7 +139,7 @@ def draw_modify_page() -> None:
 
     with st.container(border=True):
         if not subscriptions:
-            st.info("No subscriptions added yet. Please add one in the form above.", icon=":material/lightbulb:")
+            st.info("No channels added yet. Please add one in the form above.", icon=":material/lightbulb:")
             return
 
         for subscription in subscriptions:
@@ -148,20 +147,11 @@ def draw_modify_page() -> None:
             channel_url_str = str(subscription.channel_url)
 
             with st.container(horizontal=True, wrap=False):
-                st.link_button(
-                    label=channel_url_str,
-                    url=channel_url_str,
-                    help="Open this channel in a new tab",
-                    type="tertiary",
-                    icon=":material/person:",
-                )
-
-                # Greedily fill remaining space between content-sized widgets
-                st.space("stretch")
-
                 with st.popover(
-                    label=":material/edit:",
-                    help="Edit the channel URL or delete the subscription",
+                    label="Edit",
+                    type="primary",
+                    help="Edit the channel URL or delete the channel",
+                    icon=":material/edit:",
                 ):
                     with (
                         st.form(
@@ -169,10 +159,11 @@ def draw_modify_page() -> None:
                             clear_on_submit=True,
                             border=False,
                         ),
+                        # Arrange horizontally, hooked to the bottom so the submit button is aligned with the text field
                         st.container(horizontal=True, wrap=False, vertical_alignment="bottom"),
                     ):
-                        modified_channel_url: str = st.text_input(
-                            label="Modified channel URL",
+                        edited_channel_url: str = st.text_input(
+                            label="Edited channel URL",
                             value=channel_url_str,
                             type="url",
                             placeholder="https://www.youtube.com/@noriyaro",
@@ -183,16 +174,15 @@ def draw_modify_page() -> None:
                             # We will perform thorough extraction within the Pydantic structures afterward
                             validate=r"^https://.*youtube\.com.*$",
                         )
-                        is_modify_existing_channel_url_pressed: bool = st.form_submit_button(
+                        is_edit_existing_channel_url_pressed: bool = st.form_submit_button(
                             label="Set URL",
-                            help="Set the YouTube channel URL to the entered URL",
-                            type="primary",
+                            help="Set the channel URL to the entered URL",
                             icon=":material/send:",
                         )
 
-                    if is_modify_existing_channel_url_pressed:
+                    if is_edit_existing_channel_url_pressed:
                         updated_subscription = subscription.with_changes(
-                            {Database.Field.CHANNEL_URL: modified_channel_url},
+                            {Database.Field.CHANNEL_URL: edited_channel_url},
                         )
                         database.update(updated_subscription)
                         st.rerun()
@@ -202,11 +192,17 @@ def draw_modify_page() -> None:
                         # This isn't a `st.form_submit_button` so we need unique keys to avoid
                         # `StreamlitDuplicateElementId`
                         key=f"components.draw_modify_page.button.delete_subscription.{subscription.id}",
-                        help="Delete the YouTube channel permanently",
-                        type="primary",
+                        help="Delete the channel permanently",
                         icon=":material/delete_forever:",
                         width="stretch",
                     )
                     if is_delete_existing_channel_pressed:
                         database.delete(subscription)
                         st.rerun()
+
+                st.link_button(
+                    label=channel_url_str,
+                    url=channel_url_str,
+                    help="Open this channel in a new tab",
+                    type="tertiary",
+                )
