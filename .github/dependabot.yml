@@ -1,15 +1,23 @@
 version: 2
 
 updates:
-  # Check Python dependencies once per month
+  # Check Python dependencies once per month and combine their updates into one PR
   # GitHub currently applies a three-day cooldown to version updates by default
   - package-ecosystem: "uv"
     directory: "/"
     schedule:
       interval: "monthly"
+    groups:
+      python:
+        patterns:
+          - "*"
 
-  # Check GitHub Actions dependencies once per month
+  # Check GitHub Actions once per month and combine their updates into one PR
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "monthly"
+    groups:
+      actions:
+        patterns:
+          - "*"
