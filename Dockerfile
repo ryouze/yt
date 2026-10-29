@@ -8,7 +8,7 @@ FROM ghcr.io/astral-sh/uv:python3.14-trixie-slim
 WORKDIR /app
 COPY . .
 
-# Install production dependencies from `uv.lock` (fail if it's outdated), excluding the default `test` and `development` groups
+# Install production dependencies from `uv.lock` (fail if inconsistent with `pyproject.toml`), excluding the default `test` and `development` groups
 RUN uv sync --locked --no-default-groups
 
 EXPOSE 8501
