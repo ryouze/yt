@@ -1,18 +1,17 @@
-# We stick to good old pip instead of uv, following the Streamlit docs
 # - https://docs.streamlit.io/deploy/tutorials/docker
 # - https://docs.docker.com/guides/python/
 
 # TODO(ryouze): Add caching and reduce image size
 
-FROM python:3.14-slim
-
-ENV PIP_UPLOADED_PRIOR_TO=P3D
+FROM ghcr.io/astral-sh/uv:python3.14-trixie-slim
 
 WORKDIR /app
 COPY . .
 
-RUN pip3 install .
+# Install production dependencies from `uv.lock` (fail if it's outdated), excluding the default `test` and `development` groups
+RUN uv sync --locked --no-default-groups
 
 EXPOSE 8501
 
-ENTRYPOINT ["streamlit", "run", "src/yt/streamlit_app.py", "--server.headless=true", "--server.address=0.0.0.0", "--server.port=8501", "--server.fileWatcherType=none", "--browser.gatherUsageStats=false"]
+# Start Streamlit directly from the virtual environment created by uv
+ENTRYPOINT ["/app/.venv/bin/streamlit", "run", "src/yt/streamlit_app.py", "--server.headless=true", "--server.address=0.0.0.0", "--server.port=8501", "--server.fileWatcherType=none", "--browser.gatherUsageStats=false"]

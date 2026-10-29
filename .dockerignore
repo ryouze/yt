@@ -10,7 +10,6 @@ data/
 *.toml
 !pyproject.toml
 *.yaml
-uv.lock
 
 # Base ignores taken from the docs: https://docs.docker.com/guides/python/
 **/.DS_Store
