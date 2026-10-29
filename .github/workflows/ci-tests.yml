@@ -1,3 +1,4 @@
+# See: https://docs.astral.sh/uv/guides/integration/github/
 name: "CI: Run automated tests"
 
 on:
@@ -27,12 +28,12 @@ jobs:
           persist-credentials: false
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v10
+        uses: astral-sh/setup-uv@v10.3.2
 
       - name: Setup Python and run pytest
         # Install Python listed in `.python-version` and the test dependencies from `uv.lock`, then execute pytest
         #
-        # `--locked` = use `uv.lock` and fail if it's outdated
+        # `--locked` = use `uv.lock` and fail if it's inconsistent with `pyproject.toml`
         # `--no-default-groups` = exclude the default `test` and `dev` groups initially (we don't want `ruff`)
         # `--group test` = explicitly include only the `test` group
         run: uv run --locked --no-default-groups --group test pytest
