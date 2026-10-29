@@ -13,7 +13,7 @@ dependencies = [
     #   uv tree --outdated --depth 1
     # To update everything:
     #   uv sync --upgrade
-    "yt-dlp>=2026.8.19",             # For fetching data from YouTube
+    "yt-dlp>=2026.10.26",             # For fetching data from YouTube
     "loguru>=0.7.3,<0.8",            # For zero-configuration logging
     "pydantic>=2.14.1,<3",           # For data validation
     "streamlit>=1.66.0,<2",          # For the entire web framework
