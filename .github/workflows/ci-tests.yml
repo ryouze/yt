@@ -1,19 +1,17 @@
 name: "CI: Run automated tests"
 
 on:
-  # Run on push to any branch and allow manual runs from the `Actions` tab
+  # Run on pushes to `main` (avoid duplicate runs on feature branches) and on pull requests
+  # Also allow manual runs from the `Actions` tab
   push:
+    branches:
+      - main
+  pull_request:
   workflow_dispatch:
 
 # Ensure GITHUB_TOKEN is read-only; any unlisted permissions here are also disabled
 permissions:
   contents: read
-
-env:
-  # Compile `*.pyc` files lazily on import instead of during installation
-  PIP_NO_COMPILE: "1"
-  # Require all packages to be at least 3 days old to avoid supply chain attacks (see: https://cooldowns.dev/#uv)
-  PIP_UPLOADED_PRIOR_TO: "P3D"
 
 jobs:
   tests:
@@ -28,17 +26,13 @@ jobs:
           # Do not store GITHUB_TOKEN in `$RUNNER_TEMP`
           persist-credentials: false
 
-      - name: Set up Python
-        uses: actions/setup-python@v7
-        with:
-          # Avoid downloading the same packages again (see: https://github.com/actions/setup-python)
-          cache: "pip"
-          python-version: "3.14"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10
 
-      - name: Install Python dependencies
-        # Pip, unlike uv, does not install the `dev` group by default
-        run: pip3 install --group test .
-
-      - name: Run pytest
-        # The actual configuration is done in `pyproject.toml`
-        run: pytest
+      - name: Setup Python and run pytest
+        # Install Python listed in `.python-version` and the test dependencies from `uv.lock`, then execute pytest
+        #
+        # `--locked` = use `uv.lock` and fail if it's outdated
+        # `--no-default-groups` = exclude the default `test` and `dev` groups initially (we don't want `ruff`)
+        # `--group test` = explicitly include only the `test` group
+        run: uv run --locked --no-default-groups --group test pytest
