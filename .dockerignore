@@ -5,6 +5,7 @@ tests/
 # Runtime cache & temporary files
 data/
 *.py[cod]
+screenshots/
 
 # Configs & build files
 *.toml
