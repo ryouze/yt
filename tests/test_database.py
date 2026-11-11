@@ -20,6 +20,21 @@ def test_read_all_empty(database: Database) -> None:
     assert database.read_all() == []
 
 
+def test_read_all_sorted(database: Database) -> None:
+    """Ensure subscriptions are sorted by channel URL, not insertion order."""
+    expected_urls: list[HttpUrl] = [
+        HttpUrl("https://www.youtube.com/@aaa"),
+        HttpUrl("https://www.youtube.com/@BBB"),
+        HttpUrl("https://www.youtube.com/@zzz"),
+    ]
+
+    for channel_url in reversed(expected_urls):
+        subscription_input = SubscriptionInput(channel_url=channel_url)
+        database.insert_new(subscription_input=subscription_input)
+
+    assert [s.channel_url for s in database.read_all()] == expected_urls
+
+
 def test_insert_new_subscription(database: Database) -> None:
     """Ensure that subscriptions can be inserted and read."""
     subscription_input = SubscriptionInput(channel_url=HttpUrl("https://www.youtube.com/@noriyaro"))
