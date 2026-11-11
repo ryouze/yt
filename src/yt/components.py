@@ -94,7 +94,6 @@ def draw_browse_page() -> None:
         # This is better than `st.container` because each video gets an equal-width column
         # TODO(ryouze): Use a `st.container(horizontal=True)` here if possible
         cols = st.columns(
-            wrap=False,
             gap="xsmall",
             spec=len(subscription_status.videos),
         )
