@@ -3,7 +3,7 @@
 
 # TODO(ryouze): Add caching and reduce image size
 
-FROM ghcr.io/astral-sh/uv:python3.14-trixie-slim
+FROM ghcr.io/astral-sh/uv:python3.15-trixie-slim
 
 WORKDIR /app
 COPY . .
