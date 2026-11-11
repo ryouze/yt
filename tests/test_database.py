@@ -62,8 +62,10 @@ def test_insert_duplicate_subscription(database: Database) -> None:
     subscription_input = SubscriptionInput(channel_url=HttpUrl("https://www.youtube.com/@noriyaro"))
     database.insert_new(subscription_input=subscription_input)
 
-    with pytest.raises(sqlite3.IntegrityError, match=r"UNIQUE constraint failed: subscriptions\.channel_url"):
+    with pytest.raises(sqlite3.IntegrityError) as exc_info:
         database.insert_new(subscription_input=subscription_input)
+
+    assert exc_info.value.sqlite_errorcode == sqlite3.SQLITE_CONSTRAINT_UNIQUE
 
     subscriptions: list[Subscription] = database.read_all()
 
@@ -100,8 +102,10 @@ def test_update_duplicate_subscription(database: Database) -> None:
         changes={Database.Field.CHANNEL_URL: first_subscription_input.channel_url},
     )
 
-    with pytest.raises(sqlite3.IntegrityError, match=r"UNIQUE constraint failed: subscriptions\.channel_url"):
+    with pytest.raises(sqlite3.IntegrityError) as exc_info:
         database.update(subscription=duplicate_subscription)
+
+    assert exc_info.value.sqlite_errorcode == sqlite3.SQLITE_CONSTRAINT_UNIQUE
 
     # Check if after the failed duplicate update, the database still contains exactly the two original channel URLs
     subscriptions = database.read_all()
