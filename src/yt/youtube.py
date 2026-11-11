@@ -46,6 +46,9 @@ def fetch_subscription_status(subscription: Subscription) -> SubscriptionStatus:
         msg: str = f"yt-dlp returned no channel name for {subscription.channel_url}"
         raise RuntimeError(msg)
 
+    # We will compare each video against the current's date
+    current_date: date = datetime.now(UTC).date()
+
     videos: list[Video] = []
 
     for entry in channel_data.get("entries", []):
@@ -80,15 +83,16 @@ def fetch_subscription_status(subscription: Subscription) -> SubscriptionStatus:
             logger.debug("Skipping members-only video {} for {}", video_url, subscription.channel_url)
             continue
 
-        # Get the approximate upload date in UTC, falling back to 1970-1-1 when unavailable
+        # Calculate upload age in UTC calendar days, using the Unix epoch when the timestamp is unavailable
         timestamp: int | float = entry.get("timestamp") or 0
         upload_date: date = datetime.fromtimestamp(timestamp, tz=UTC).date()
+        upload_age_days: int = (current_date - upload_date).days
 
         videos.append(
             Video(
                 video_title=title,
-                upload_date=upload_date,
                 video_url=HttpUrl(video_url),
+                upload_age_days=upload_age_days,
                 # Use YouTube's fixed small 16:9 thumbnail
                 thumbnail_url=HttpUrl(f"https://i.ytimg.com/vi/{video_id}/mqdefault.jpg"),
             ),

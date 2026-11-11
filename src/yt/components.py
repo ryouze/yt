@@ -82,7 +82,13 @@ def draw_browse_page() -> None:
     subscription_statuses: list[SubscriptionStatus] = _fetch_subscription_statuses(subscriptions)
 
     for subscription_status in subscription_statuses:
-        st.subheader(subscription_status.name)
+        # Highlight channels that uploaded recently
+        channel_title: str = subscription_status.name
+
+        if any(video.upload_age_days < settings.recent_upload_days for video in subscription_status.videos):
+            channel_title = f":shimmer[:material/star: {channel_title}]"
+
+        st.subheader(channel_title, anchor=False)
 
         # Keep every video in a single horizontally scrollable row
         # This is better than `st.container` because each video gets an equal-width column

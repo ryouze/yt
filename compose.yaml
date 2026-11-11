@@ -18,6 +18,8 @@ services:
     environment:
       # This is optional and defaults to 900
       REFRESH_INTERVAL_SECONDS: "900"
+      # This is optional and defaults to 3
+      RECENT_UPLOAD_DAYS: "3"
     ports:
       - "8501:8501"
     volumes:

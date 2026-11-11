@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     App-wide settings read from environment variables.
 
     Attributes:
+        recent_upload_days (int): Highlight channels with uploads younger than this number of days (default: 3).
         refresh_interval_seconds (int): How often to refresh the list of available videos, in seconds (default: 900).
     """
 
@@ -24,6 +25,7 @@ class Settings(BaseSettings):
         # `extra="forbid"` and `validate_default=True` are already enabled by default
     )
 
+    recent_upload_days: PositiveInt = 3
     refresh_interval_seconds: PositiveInt = 900
 
 
