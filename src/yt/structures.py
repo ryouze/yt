@@ -1,4 +1,5 @@
 from collections.abc import Mapping
+from datetime import UTC, date, datetime
 from typing import ClassVar
 
 from pydantic import (
@@ -99,14 +100,42 @@ class Video(_AppBaseModel):
     A single YouTube video.
 
     Attributes:
+        upload_date (date): Approximate UTC publication date (e.g., `date(2026, 10, 31)`).
         video_url (HttpUrl): YouTube video URL (e.g., `https://www.youtube.com/watch?v=...`).
         thumbnail_url (HttpUrl): YouTube video thumbnail image URL (e.g., `https://i.ytimg.com/vi/.../mqdefault.jpg`).
         video_title (str): YouTube video title (e.g., `I bought a PVC Daihatsu Mira`).
     """
 
+    upload_date: date
     video_url: HttpUrl
     thumbnail_url: HttpUrl
     video_title: str = Field(min_length=1)
+
+    @property
+    def relative_upload_date(self) -> str:
+        """Return the upload date as a human-readable relative time."""
+        # Calculate the number of days since the video was uploaded using UTC
+        current_date: date = datetime.now(UTC).date()
+        days_ago: int = (current_date - self.upload_date).days
+
+        if days_ago < 0:
+            return "Upcoming"
+        if days_ago == 0:
+            return "Today"
+        if days_ago == 1:
+            return "Yesterday"
+        if days_ago < 7:
+            return f"{days_ago} days ago"
+
+        # Approximate months as 30 days and years as 365 days
+        for unit, unit_days in (("year", 365), ("month", 30), ("week", 7)):
+            if days_ago >= unit_days:
+                count: int = days_ago // unit_days
+                # Add `s` (pluralization) if not 1
+                suffix: str = "" if count == 1 else "s"
+                return f"{count} {unit}{suffix} ago"
+
+        return f"{days_ago} days ago"
 
 
 class SubscriptionStatus(_AppBaseModel):

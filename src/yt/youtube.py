@@ -1,3 +1,5 @@
+from datetime import UTC, date, datetime
+
 from loguru import logger
 from pydantic import HttpUrl
 from yt_dlp import YoutubeDL
@@ -21,6 +23,8 @@ def fetch_subscription_status(subscription: Subscription) -> SubscriptionStatus:
         "extract_flat": "in_playlist",
         # Inspect only the first N entries from the channel's Videos tab
         "playlist_items": f"1:{requested_total_amount}",
+        # Enable approximate upload timestamps from YouTube channel listings
+        "extractor_args": {"youtubetab": {"approximate_date": ["true"]}},
     }
 
     with YoutubeDL(yt_dlp_options) as youtube_dl:  # pyright: ignore[reportArgumentType]
@@ -76,9 +80,14 @@ def fetch_subscription_status(subscription: Subscription) -> SubscriptionStatus:
             logger.debug("Skipping members-only video {} for {}", video_url, subscription.channel_url)
             continue
 
+        # Get the approximate upload date in UTC, falling back to 1970-1-1 when unavailable
+        timestamp: int | float = entry.get("timestamp") or 0
+        upload_date: date = datetime.fromtimestamp(timestamp, tz=UTC).date()
+
         videos.append(
             Video(
                 video_title=title,
+                upload_date=upload_date,
                 video_url=HttpUrl(video_url),
                 # Use YouTube's fixed small 16:9 thumbnail
                 thumbnail_url=HttpUrl(f"https://i.ytimg.com/vi/{video_id}/mqdefault.jpg"),

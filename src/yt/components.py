@@ -94,14 +94,18 @@ def draw_browse_page() -> None:
         )
 
         for col, video in zip(cols, subscription_status.videos, strict=True):
-            with col:
+            # We need small spacing between each element
+            with col, st.container(gap="xxsmall"):
                 # The images are clickable, just like on the real YouTube homepage
                 st.image(
                     width="stretch",
-                    caption=video.video_title,
                     link=str(video.video_url),
                     image=str(video.thumbnail_url),
                 )
+
+                st.markdown(f"**{video.video_title}**")
+
+                st.caption(f"Uploaded {video.relative_upload_date}")
 
 
 def draw_modify_page() -> None:
